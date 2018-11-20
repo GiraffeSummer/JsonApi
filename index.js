@@ -29,19 +29,20 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 app.get('/', function (request, response) {
-    response.send("Not implemented yet");
+    var text = "Not implemented yet<br><br>";
+    text += "endpoints for now:<br>" +
+        "/gettoken &nbsp; &nbsp; &nbsp; -> to get a token and key<br>" +
+        "/upload?token=%token%&key=%key%&filename=%filename% &nbsp; &nbsp; &nbsp;  -> to upload a file, variables are your token and key, and a filename (replace %key% ect) <br>"+
+        "/load?token=%token%&key=%key%&filename=%filename% &nbsp; &nbsp; &nbsp;  -> to load a file, variables are your token and key, and a filename (replace %key% ect) <br>";
+    response.send(text);
 })
 
 app.get('/gettoken', function (request, response) {
     getUserCode();
-
     function getUserCode() {
         var pass;
-        var ip;
-        if (isNaN(request.connection.remoteAddress)) {
-            ip = "192.168.1.12";
-        } else
-            ip = request.connection.remoteAddress;
+        var ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
+        console.log(ip);
         var numbs = ip.split(".");
 
         var rawNumb = parseInt(numbs[0]);
@@ -50,13 +51,18 @@ app.get('/gettoken', function (request, response) {
         }
         rawNumb += parseInt(numbs.concat());
         var tokenLoc = __dirname + `/public/${rawNumb.toString(16)}/P__.json`;
-        if (fs.existsSync(tokenLoc)) { pass = LoadJson(tokenLoc).key } else pass = makeid();
-
-        var content = { "token": rawNumb.toString(16), "key": pass }
-        SaveJson(content, tokenLoc);
+        var content;
+        if (fs.existsSync(tokenLoc)) {
+            pass = LoadJson(tokenLoc).key;
+            content = { "token": rawNumb.toString(16), "key": pass };
+        } else {
+            pass = makeid();
+            content = { "token": rawNumb.toString(16), "key": pass };
+            SaveJson(content, tokenLoc);
+        }
         response.send(content);
     }
-})
+});
 
 app.post('/upload', function (req, res) {
     var user;
@@ -79,6 +85,25 @@ app.post('/upload', function (req, res) {
     var loc = __dirname + `/public/${token}/${fileName}.json`;
 
     SaveJson(req.body,/*req.protocol + "://" + req.get('host')*/loc);
+});
+
+app.get('/load', function (req, res) {
+    var user;
+    var fileName = req.query.filename;
+    console.log(req.query.filename);
+    if (req.query.key == undefined || req.query.token == undefined || req.query.filename === undefined) {
+        res.send("You're wrong!"); return;
+    }
+
+    var token = req.query.token;
+    var key = req.query.key;
+    var tokenLoc = __dirname + `/public/${token}/P__.json`;
+
+    if (fs.existsSync(tokenLoc)) user = LoadJson(tokenLoc)
+    if (user.key != key) { res.send("You're wrong!"); return; }
+
+    var loc = __dirname + `/public/${token}/${fileName}.json`;
+    res.send(LoadJson(loc));
 });
 
 app.listen(port, () => console.log(color.green(`Started on port ${port}!`)))
@@ -122,6 +147,6 @@ function makeid(length = 10) {
 //http://example.com/api/users?id=4&token=sdfa3&geo=us
 /*
 var user_id = req.param('id');
-  var token = req.param('token');
-  var geo = req.param('geo');  
+var token = req.param('token');
+var geo = req.param('geo');  
 */
