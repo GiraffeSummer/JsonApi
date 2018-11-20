@@ -9,6 +9,7 @@ data/*
 .vscode/
 !data/newserver.json
 debug/*
+**/public
 
 # Runtime data
 pids
