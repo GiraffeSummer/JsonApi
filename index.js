@@ -10,6 +10,7 @@ var fileupload = require('express-fileupload');
 
 var port = "8081";
 
+checkDirectory("./public/");
 
 const app = express();
 app.use(express.static('public', {
