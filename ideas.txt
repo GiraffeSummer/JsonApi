@@ -1,0 +1,3 @@
+folder per user 
+userkey = ip * every value, to hexadecimal
+json file per class to save (like lvls.json and servers.json in godbot)
