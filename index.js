@@ -28,12 +28,13 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 app.use(bodyParser.json());
+//app.use(bodyParser.text());
 
 app.get('/', function (request, response) {
     var text = "Not implemented yet<br><br>";
     text += "endpoints for now:<br>" +
         "/gettoken &nbsp; &nbsp; &nbsp; -> to get a token and key<br>" +
-        "/upload?token=%token%&key=%key%&filename=%filename% &nbsp; &nbsp; &nbsp;  -> to upload a file, variables are your token and key, and a filename (replace %key% ect) <br>"+
+        "/upload?token=%token%&key=%key%&filename=%filename% &nbsp; &nbsp; &nbsp;  -> to upload a file, variables are your token and key, and a filename (replace %key% ect) <br>" +
         "/load?token=%token%&key=%key%&filename=%filename% &nbsp; &nbsp; &nbsp;  -> to load a file, variables are your token and key, and a filename (replace %key% ect) <br>";
     response.send(text);
 })
@@ -51,7 +52,7 @@ app.get('/gettoken', function (request, response) {
             rawNumb *= parseInt(numbs[i]);
         }
         rawNumb += parseInt(numbs.concat());
-        var tokenLoc = __dirname + `/public/${rawNumb.toString(16)}/P__.json`;
+        var tokenLoc = __dirname + `/public/${rawNumb.toString(16)}/__P.json`;
         var content;
         if (fs.existsSync(tokenLoc)) {
             pass = LoadJson(tokenLoc).key;
@@ -68,6 +69,7 @@ app.get('/gettoken', function (request, response) {
 app.post('/upload', function (req, res) {
     var user;
     var fileName;
+    var ext = "json";
     if (req.query.filename === undefined) {
         fileName = "NoName";
     } else fileName = req.query.filename;
@@ -75,35 +77,45 @@ app.post('/upload', function (req, res) {
     if (req.query.key == undefined || req.query.token == undefined) {
         res.send("You're wrong!"); return;
     }
+    /*if (req.query.ext == undefined) {
+        ext = "json";
+    } else {
+        ext = req.query.ext;
+    }*/
 
     var token = req.query.token;
     var key = req.query.key;
-    var tokenLoc = __dirname + `/public/${token}/P__.json`;
+    var tokenLoc = __dirname + `/public/${token}/__P.json`;
 
     if (fs.existsSync(tokenLoc)) user = LoadJson(tokenLoc)
     if (user.key != key) { res.send("You're wrong!"); return; }
 
-    var loc = __dirname + `/public/${token}/${fileName}.json`;
-
-    SaveJson(req.body,/*req.protocol + "://" + req.get('host')*/loc);
+    var loc = __dirname + `/public/${token}/${fileName}.${ext}`;
+    //fs.writeFileSync(loc, req.body)
+     SaveJson(req.body,/*req.protocol + "://" + req.get('host')*/loc);
 });
 
 app.get('/load', function (req, res) {
     var user;
     var fileName = req.query.filename;
+    var ext = "json";
     console.log(req.query.filename);
     if (req.query.key == undefined || req.query.token == undefined || req.query.filename === undefined) {
         res.send("You're wrong!"); return;
     }
-
+    /* if (req.query.ext == undefined) {
+         ext = "json";
+     } else {
+         ext = req.query.ext;
+     }*/
     var token = req.query.token;
     var key = req.query.key;
-    var tokenLoc = __dirname + `/public/${token}/P__.json`;
+    var tokenLoc = __dirname + `/public/${token}/__P.json`;
 
     if (fs.existsSync(tokenLoc)) user = LoadJson(tokenLoc)
     if (user.key != key) { res.send("You're wrong!"); return; }
 
-    var loc = __dirname + `/public/${token}/${fileName}.json`;
+    var loc = __dirname + `/public/${token}/${fileName}.${ext}`;
     res.send(LoadJson(loc));
 });
 
