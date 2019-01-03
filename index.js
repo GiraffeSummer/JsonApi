@@ -8,7 +8,7 @@ const safeJsonStringify = require('safe-json-stringify');
 var failText = "No image found";
 var fileupload = require('express-fileupload');
 
-var port = "8081";
+const port = "8081";
 
 checkDirectory("./public/");
 
@@ -24,10 +24,11 @@ app.use(function (req, res, next) {
 });
 app.use(fileupload());
 
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true,
+    limit: '50mb'
+}));
 //app.use(bodyParser.text());
 
 app.get('/', function (request, response) {
